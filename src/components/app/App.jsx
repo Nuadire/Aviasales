@@ -13,13 +13,15 @@ const Aviasales = styled.div`
 `;
 
 export class App extends React.Component {
+
   state = {
+    selectedSort: "Самый дешевый",
     allStops: true,
     stops: [
       { id: 0, name: "Без пересадок", isChecked: true },
       { id: 1, name: "1 пересадка", isChecked: true },
-      { id: 2, name: "2 пересадка", isChecked: true },
-      { id: 3, name: "3 пересадка", isChecked: true },
+      { id: 2, name: "2 пересадки", isChecked: true },
+      { id: 3, name: "3 пересадки", isChecked: true },
     ],
   };
 
@@ -43,8 +45,12 @@ export class App extends React.Component {
     });
   };
 
+  handlerSorting = ({target: {value}}) => {
+    this.setState({selectedSort: value });
+  };
+
   render() {
-    const { allStops, stops } = this.state;
+    const { allStops, stops, selectedSort } = this.state;
     return (
       <>
         <Header />
@@ -55,7 +61,7 @@ export class App extends React.Component {
             allStops={allStops}
             stops={stops}
           />
-          <Content />
+          <Content selectedSort={selectedSort} handlerSorting={this.handlerSorting} />
         </Aviasales>
       </>
     );

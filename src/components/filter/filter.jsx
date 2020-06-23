@@ -83,8 +83,11 @@ export const Filter = ({
 
 Filter.propTypes = {
   allStops: PropTypes.bool.isRequired,
-  // eslint-disable-next-line react/forbid-prop-types
-  stops: PropTypes.array.isRequired,
+  stops: PropTypes.arrayOf( PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+    isChecked: PropTypes.bool,
+  })).isRequired,
   handlerFilter: PropTypes.func.isRequired,
   handlerAllFiltered: PropTypes.func.isRequired,
 };
