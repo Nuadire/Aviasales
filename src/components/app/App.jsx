@@ -3,19 +3,48 @@ import styled from "styled-components";
 import { Header } from "../header/header";
 import { Filter } from "../filter/filter";
 import { Content } from "../content/content";
+import { Spinner } from "../spinner/spinner";
+import API from "../../utils/API";
 
-const Aviasales = styled.div`
-  width: 754px;
+const CHEAPEST = "Самый дешевый";
+
+const Wrapper = styled.div`
   margin: 0 auto;
+  width: 754px;
+`
+const Aviasales = styled.div`
   display: grid;
   grid-template-columns: 232px auto;
   gap: 20px;
 `;
 
-export class App extends React.Component {
+const sortFlight = (tickets, fn) => tickets.sort(fn);
+const sumDuration = (ticket) =>
+  ticket.segments.reduce((acc, segment) => acc + segment.duration, 0);
+const fastestFlight = (ticketPrev, ticketNext) =>
+  sumDuration(ticketPrev) - sumDuration(ticketNext);
+const cheapestFlight = (ticketPrev, ticketNext) =>
+  ticketPrev.price - ticketNext.price;
+const filterTop5 = (tickets) => tickets.slice(0, 5);
+const filterFlight = (tickets, stopsArr) =>
+  tickets.filter(({ segments }) => {
+    return segments.every(({ stops }) =>
+      stopsArr.some((count) => count === stops.length)
+    );
+  });
+const normaliseStops = (stops) =>
+  stops.reduce((acc, { id, isChecked }) => {
+    if (isChecked) {
+      acc.push(id);
+    }
+    return acc;
+  }, []);
 
+export class App extends React.Component {
   state = {
-    selectedSort: "Самый дешевый",
+    isLoading: true,
+    tickets: [],
+    selectedSort: CHEAPEST,
     allStops: true,
     stops: [
       { id: 0, name: "Без пересадок", isChecked: true },
@@ -24,6 +53,33 @@ export class App extends React.Component {
       { id: 3, name: "3 пересадки", isChecked: true },
     ],
   };
+
+  async componentDidMount() {
+    const getTicketsChunk = async (ticketsAcc, searchId, isEnd) => {
+      if (isEnd) return ticketsAcc;
+
+      try {
+        const {
+          data: { tickets, stop },
+        } = await API.get(`/tickets?searchId=${searchId}`);
+        const newArr = ticketsAcc.concat(tickets);
+        return getTicketsChunk(newArr, searchId, stop);
+      } catch (error) {
+        // обработка ошибки и возможно еще запросы
+        return ticketsAcc;
+      }
+    };
+    try {
+      const {
+        data: { searchId },
+      } = await API.get("/search");
+      const { tickets } = this.state;
+      const ticketsArr = await getTicketsChunk(tickets, searchId);
+      this.setState({ tickets: ticketsArr, isLoading: false });
+    } catch (error) {
+      // debugger; // Доделать!
+    }
+  }
 
   handlerFilter = ({ target: { name, checked } }) => {
     this.setState(({ stops }) => {
@@ -45,25 +101,40 @@ export class App extends React.Component {
     });
   };
 
-  handlerSorting = ({target: {value}}) => {
-    this.setState({selectedSort: value });
+  handlerSorting = ({ target: { value } }) => {
+    this.setState({ selectedSort: value });
   };
 
   render() {
-    const { allStops, stops, selectedSort } = this.state;
+    const { allStops, stops, selectedSort, tickets, isLoading } = this.state;
+    const filterTickets = filterFlight(tickets, normaliseStops(stops));
+    let viewTickets = [];
+    if (filterTickets.length !== 0) {
+      const sortFn = selectedSort === CHEAPEST ? cheapestFlight : fastestFlight;
+      const sortingTickets = sortFlight(filterTickets, sortFn);
+      viewTickets = filterTop5(sortingTickets);
+    }
     return (
-      <>
+      <Wrapper>
         <Header />
-        <Aviasales>
-          <Filter
-            handlerFilter={this.handlerFilter}
-            handlerAllFiltered={this.handlerAllFiltered}
-            allStops={allStops}
-            stops={stops}
-          />
-          <Content selectedSort={selectedSort} handlerSorting={this.handlerSorting} />
-        </Aviasales>
-      </>
+        {isLoading ? (
+          <Spinner style={{"margin": "20px auto"}} />
+        ) : (
+          <Aviasales>
+            <Filter
+              handlerFilter={this.handlerFilter}
+              handlerAllFiltered={this.handlerAllFiltered}
+              allStops={allStops}
+              stops={stops}
+            />
+            <Content
+              tickets={viewTickets}
+              selectedSort={selectedSort}
+              handlerSorting={this.handlerSorting}
+            />
+          </Aviasales>
+        )}
+      </Wrapper>
     );
   }
 }

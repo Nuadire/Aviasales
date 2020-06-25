@@ -20,8 +20,9 @@ const Label = styled.label`
     return "none";
   }};
   display: block;
-  padding: 15px 56px;
+  height: 52px;
   width: 252px;
+  padding: 15px 56px;
   font-family: Open Sans;
   font-style: normal;
   font-weight: 600;
