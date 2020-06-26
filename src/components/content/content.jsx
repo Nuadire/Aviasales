@@ -2,7 +2,9 @@ import React from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import { Sorting } from "../sorting/sorting";
+import { Segment } from "../segment/segment";
 import LogoS7 from "./S7 Logo.png";
+// pics.avs.io/99/36/{IATA_CODE_HERE}.png
 
 const Ticket = styled.div`
   width: 502px;
@@ -38,82 +40,23 @@ const InfoContainer = styled.div`
   grid-template-columns: 141px 141px 141px;
   grid-template-rows: 39px 39px;
 `;
-const Info = styled.div`
-  width: 141px;
-`;
-const Main = styled.div`
-  font-family: Open Sans;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 21px;
-  color: #4a4a4a;
-`;
-const Subsidiary = styled.div`
-  text-transform: uppercase;
-  font-family: Open Sans;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 18px;
-  color: #a0b0b9;
-`;
 
 const Container = styled.div`
   display: grid;
   gap: 20px;
 `;
 
-const getSegment = ({ date, destination, duration, origin, stops }) => {
-  const transplant = stops.length;
-  let strTransplant = "";
-  switch (transplant) {
-    case 0:
-      strTransplant = "Без пересадок";
-      break;
-    case 1:
-      strTransplant = `${transplant} Пересадка`;
-      break;
-    default:
-      strTransplant = `${transplant} Пересадки`;
-      break;
-  }
-  const dateTime = new Date(date).getHours();
-  return (
-    <>
-      <Info>
-        <Subsidiary>{`${origin} - ${destination}`}</Subsidiary>
-        <Main>{dateTime}</Main>
-      </Info>
-      <Info>
-        <Subsidiary>В пути</Subsidiary>
-        <Main>{duration}</Main>
-      </Info>
-      <Info>
-        <Subsidiary>{strTransplant}</Subsidiary>
-        <Main>{stops.join(", ")}</Main>
-      </Info>
-    </>
-  );
-};
-getSegment.propTypes = {
-  date: PropTypes.string.isRequired,
-  destination: PropTypes.string.isRequired,
-  duration: PropTypes.number.isRequired,
-  origin: PropTypes.string.isRequired,
-  stops: PropTypes.arrayOf(PropTypes.string).isRequired,
-};
-
 const getTicket = ({ price, segments }) => {
-  const priceInCurrency = `${price} P`;
+  const strPrice = String(price).replace(/(\d)(?=(\d\d\d)+([^\d]|$))/g, '$1 ')
+  const priceInCurrency = `${strPrice} P`;
   return (
-    <Ticket>
+    <Ticket >
       <Header>
         <Price>{priceInCurrency}</Price>
         <Logo src={LogoS7} />
       </Header>
       <InfoContainer>
-        {segments.map((segment) => getSegment(segment))}
+        {segments.map((segment) => <Segment {...segment} />)}
       </InfoContainer>
     </Ticket>
   );
@@ -121,7 +64,7 @@ const getTicket = ({ price, segments }) => {
 getTicket.propTypes = {
   price: PropTypes.number.isRequired,
   // eslint-disable-next-line react/forbid-prop-types
-  segments: PropTypes.array.isRequired,
+  segments: PropTypes.array.isRequired
 };
 
 const getTikets = (tickets) =>

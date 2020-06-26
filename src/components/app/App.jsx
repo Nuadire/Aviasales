@@ -4,15 +4,17 @@ import { Header } from "../header/header";
 import { Filter } from "../filter/filter";
 import { Content } from "../content/content";
 import { Spinner } from "../spinner/spinner";
-import API from "../../utils/API";
+import { GlobalStyle } from "../../global";
+import { API } from "../../utils/API";
 
 const CHEAPEST = "Самый дешевый";
 
 const Wrapper = styled.div`
   margin: 0 auto;
   width: 754px;
-`
+`;
 const Aviasales = styled.div`
+  padding-bottom: 20px;
   display: grid;
   grid-template-columns: 232px auto;
   gap: 20px;
@@ -57,16 +59,24 @@ export class App extends React.Component {
   async componentDidMount() {
     const getTicketsChunk = async (ticketsAcc, searchId, isEnd) => {
       if (isEnd) return ticketsAcc;
-
       try {
         const {
           data: { tickets, stop },
         } = await API.get(`/tickets?searchId=${searchId}`);
         const newArr = ticketsAcc.concat(tickets);
         return getTicketsChunk(newArr, searchId, stop);
-      } catch (error) {
-        // обработка ошибки и возможно еще запросы
-        return ticketsAcc;
+      } catch (err) {
+        if (err.response) { 
+          // попросить пользователя обновить страницу
+          // eslint-disable-next-line no-alert
+          alert(err.response);  // (5xx, 4xx)
+        } else if (err.request) { 
+          // client never received a response, or request never left 
+        } else { 
+          // eslint-disable-next-line no-console
+          console.error(err);// отправка сообщения со стеком
+        }
+        return [];
       }
     };
     try {
@@ -118,7 +128,7 @@ export class App extends React.Component {
       <Wrapper>
         <Header />
         {isLoading ? (
-          <Spinner style={{"margin": "20px auto"}} />
+          <Spinner style={{ margin: "20px auto" }} />
         ) : (
           <Aviasales>
             <Filter
@@ -134,6 +144,7 @@ export class App extends React.Component {
             />
           </Aviasales>
         )}
+        <GlobalStyle />
       </Wrapper>
     );
   }
