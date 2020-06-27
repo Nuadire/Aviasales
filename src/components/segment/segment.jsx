@@ -55,15 +55,15 @@ export const Segment = ({ date, destination, duration, origin, stops }) => {
   const strEnd = getStart(addMinutes(dateTime, duration));
   return (
     <>
-      <Info>
+      <Info >
         <Subsidiary>{`${origin} - ${destination}`}</Subsidiary>
         <Main>{`${strStart} - ${strEnd}`}</Main>
       </Info>
-      <Info>
+      <Info >
         <Subsidiary>В пути</Subsidiary>
         <Main>{strInWay}</Main>
       </Info>
-      <Info>
+      <Info >
         <Subsidiary>{strTransplant}</Subsidiary>
         <Main>{stops.join(", ")}</Main>
       </Info>

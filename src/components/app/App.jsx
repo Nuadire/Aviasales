@@ -57,39 +57,52 @@ export class App extends React.Component {
   };
 
   async componentDidMount() {
-    const getTicketsChunk = async (ticketsAcc, searchId, isEnd) => {
-      if (isEnd) return ticketsAcc;
-      try {
-        const {
-          data: { tickets, stop },
-        } = await API.get(`/tickets?searchId=${searchId}`);
-        const newArr = ticketsAcc.concat(tickets);
-        return getTicketsChunk(newArr, searchId, stop);
-      } catch (err) {
-        if (err.response) { 
-          // попросить пользователя обновить страницу
-          // eslint-disable-next-line no-alert
-          alert(err.response);  // (5xx, 4xx)
-        } else if (err.request) { 
-          // client never received a response, or request never left 
-        } else { 
-          // eslint-disable-next-line no-console
-          console.error(err);// отправка сообщения со стеком
-        }
-        return [];
-      }
-    };
+    this.getTickets();
+  }
+
+  getTickets = async () => {
     try {
       const {
         data: { searchId },
       } = await API.get("/search");
       const { tickets } = this.state;
-      const ticketsArr = await getTicketsChunk(tickets, searchId);
-      this.setState({ tickets: ticketsArr, isLoading: false });
+      const ticketsArr = await this.getTicketsChunk(tickets, searchId);
+      const ticketsPlusId = ticketsArr.map((ticket, ind) => {
+        // eslint-disable-next-line no-param-reassign
+        ticket.id = ind;
+        return ticket;
+      })
+      this.setState({ tickets: ticketsPlusId, isLoading: false });
     } catch (error) {
-      // debugger; // Доделать!
-    }
+      // eslint-disable-next-line no-console
+      console.error(error);
+    }    
   }
+
+  getTicketsChunk = async (ticketsAcc, searchId, isEnd) => {
+    if (isEnd) return ticketsAcc;
+    try {
+      const {
+        data: { tickets, stop },
+      } = await API.get(`/tickets?searchId=${searchId}`);
+      const newArr = ticketsAcc.concat(tickets);
+      return this.getTicketsChunk(newArr, searchId, stop);
+    } catch (err) {
+      if (err.response) {
+        // попросить пользователя обновить страницу
+        // eslint-disable-next-line no-alert
+        alert(err.response); // (5xx, 4xx)
+      } else if (err.request) {
+        // client never received a response, or request never left
+        // eslint-disable-next-line no-console
+        console.error(err);
+      } else {
+        // eslint-disable-next-line no-console
+        console.error(err); // отправка сообщения со стеком
+      }
+      return [];
+    }
+  };
 
   handlerFilter = ({ target: { name, checked } }) => {
     this.setState(({ stops }) => {

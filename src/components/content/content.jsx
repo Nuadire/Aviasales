@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 import React from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
@@ -46,22 +47,23 @@ const Container = styled.div`
   gap: 20px;
 `;
 
-const getTicket = ({ price, segments }) => {
+const getTicket = ({id, price, segments }) => {
   const strPrice = String(price).replace(/(\d)(?=(\d\d\d)+([^\d]|$))/g, '$1 ')
   const priceInCurrency = `${strPrice} P`;
   return (
-    <Ticket >
+    <Ticket key={id}>
       <Header>
         <Price>{priceInCurrency}</Price>
         <Logo src={LogoS7} />
-      </Header>
+      </Header> 
       <InfoContainer>
-        {segments.map((segment) => <Segment {...segment} />)}
+        {segments.map((segment, index) => <Segment key={`${id}${index}`} {...segment} />)}
       </InfoContainer>
     </Ticket>
   );
 };
 getTicket.propTypes = {
+  id: PropTypes.number.isRequired,
   price: PropTypes.number.isRequired,
   // eslint-disable-next-line react/forbid-prop-types
   segments: PropTypes.array.isRequired
